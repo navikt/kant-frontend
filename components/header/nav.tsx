@@ -9,7 +9,7 @@ const ACTIVE_CLASS = 'bg-ax-bg-accent-strong-pressed! text-ax-text-accent-contra
 
 export const Nav = () => (
   <>
-    <NavLink path={RouteName.HOME}>Hjem</NavLink>
+    <NavLink path={RouteName.STATISTIKK}>Statistikk</NavLink>
   </>
 );
 

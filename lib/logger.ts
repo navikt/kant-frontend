@@ -1,63 +1,26 @@
-import { trace } from '@opentelemetry/api';
+import { logger } from '@navikt/next-logger';
 import { VERSION } from '@/lib/version';
 
-enum LogLevel {
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error',
+// Undefined values are omitted from the log line by pino.
+type LoggerFn = (message: string, eventData?: Record<string, string | number | undefined>) => void;
+
+interface Logger {
+  debug: LoggerFn;
+  info: LoggerFn;
+  warn: LoggerFn;
+  error: LoggerFn;
 }
 
-type JsonValue = string | number | boolean | null | undefined | JsonObject | JsonValue[];
-interface JsonObject {
-  [key: string]: JsonValue;
-}
+/**
+ * Logs single line JSON through pino. `trace_id` and `span_id` are added by `@navikt/next-logger`.
+ */
+export const getLogger = (module: string): Logger => {
+  const child = logger.child({ module, version: VERSION });
 
-type LoggerFn = (message: string, eventData?: JsonObject) => void;
-
-interface TraceContext {
-  traceId: string | undefined;
-  spanId: string | undefined;
-}
-
-const getTraceContext = (): TraceContext => {
-  const span = trace.getActiveSpan();
-
-  if (span === undefined) {
-    return { traceId: undefined, spanId: undefined };
-  }
-
-  const { traceId, spanId } = span.spanContext();
-
-  return { traceId, spanId };
+  return {
+    debug: (message, eventData) => child.debug(eventData ?? {}, message),
+    info: (message, eventData) => child.info(eventData ?? {}, message),
+    warn: (message, eventData) => child.warn(eventData ?? {}, message),
+    error: (message, eventData) => child.error(eventData ?? {}, message),
+  };
 };
-
-export const getLogger = (module: string, defaultEventData?: JsonObject) => ({
-  debug: getLogLine(LogLevel.DEBUG, module, defaultEventData),
-  info: getLogLine(LogLevel.INFO, module, defaultEventData),
-  warn: getLogLine(LogLevel.WARN, module, defaultEventData),
-  error: getLogLine(LogLevel.ERROR, module, defaultEventData),
-});
-
-type GetLogLineFn = (level: LogLevel, module: string, defaultEventData?: JsonObject) => LoggerFn;
-
-const getLogLine: GetLogLineFn = (level, module, defaultEventData) => (message, eventData) => {
-  const { traceId, spanId } = getTraceContext();
-
-  // biome-ignore lint/suspicious/noConsole: Console needed
-  console[level](
-    JSON.stringify({
-      ...defaultEventData,
-      ...eventData,
-      level,
-      module,
-      message,
-      trace_id: traceId,
-      span_id: spanId,
-      version: VERSION,
-      '@timestamp': timestamp(),
-    }),
-  );
-};
-
-const timestamp = () => new Date().toISOString();

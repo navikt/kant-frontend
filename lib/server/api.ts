@@ -26,7 +26,7 @@ const logger = getLogger('api');
 
 const tracer = trace.getTracer('kant-frontend');
 
-const KANT_PROXY_TARGET = new URL('https://kant.intern.nav.no/api/proxy');
+const KANT_PROXY_TARGET = new URL('https://kant.intern.dev.nav.no/api/proxy');
 
 const KABAL_INNSTILLINGER = new URL(
   isLocal ? `${KANT_PROXY_TARGET}/${AppName.KABAL_INNSTILLINGER}` : `http://${AppName.KABAL_INNSTILLINGER}`,
