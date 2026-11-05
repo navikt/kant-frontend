@@ -3,10 +3,11 @@ import { type CommonChartProps, EChart } from '@/lib/echarts/echarts';
 
 interface Serie<D> {
   name?: string;
-  color: string | string[];
+  color?: string | string[];
   data: D[];
   type: string;
-  radius?: string;
+  radius?: string | string[];
+  center?: [string, string];
   stack?: string;
   top?: number | string;
   label?: {
